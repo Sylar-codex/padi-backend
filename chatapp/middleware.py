@@ -1,39 +1,68 @@
 from django.contrib.auth.models import User, AnonymousUser
-from channels.middleware import BaseMiddleware
 from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import AuthenticationFailed
-from knox.models import AuthToken
-from knox.auth import TokenAuthentication
+from knox.models import AuthToken as Token
 from urllib.parse import parse_qs
 from channels.db import database_sync_to_async
 
+class TokenAuthentication :
 
-class TokenAuthMiddleware(BaseMiddleware):
-    async def __call__(self,scope,receive,send) :
-        query_string = scope.get("query_string").decode()
-        token = query_string.split("toke=")[1] if "token=" in query_string else None
+    model = None
 
-        if token :
-            # I will authenticate the user using knox TokenAuthentication
-            user = await self.authenticate_user(token)
-
-            if user :
-                # if authentication is successful, add the user to the scope
-
-                scope["user"] = user
-
-        return await super().__call__(scope, receive, send)
+    def get_model(self) :
+        if self.model is not None :
+            return self.model
+        return Token
     
-    @database_sync_to_async
+    def authenticate(self,token) :
+        model = self.get_model()
 
-    def authenticate_user(self,token) :
         try :
-            user, _ = TokenAuthentication().authenticate_credentials(token)
+            model.objects.select_related("user").get(token_key=token)
+        except model.DoesNotExist:
+            raise AuthenticationFailed(_("Invalid token."))
         
-        except AuthenticationFailed :
-            return None
+        if not token.user.is_active :
+            raise AuthenticationFailed(_("Use is Inactive"))
         
-        return user or AnonymousUser     
+        return token.user
+    
+@database_sync_to_async
+def get_user(scope) :   
+    if "token" not in scope :
+        raise ValueError("Cannot find token in scope")
+    
+    token = scope["token"]
+    user = None
+
+    try :
+        auth = TokenAuthentication()
+        user = auth.authenticate(token)
+    except AuthenticationFailed :
+        pass
+    return user or AnonymousUser
+
+
+
+
+class TokenAuthMiddleware:
+    """
+    Custom middleware that takes a token from the query string and authenticates via Django Rest Framework authtoken.
+    """
+ 
+    def __init__(self, app):
+        # Store the ASGI application we were passed
+        self.app = app
+ 
+    async def __call__(self, scope, receive, send):
+        # Look up user from query string (you should also do things like
+        # checking if it is a valid user ID, or if scope["user"] is already
+        # populated).
+        query_params = parse_qs(scope["query_string"].decode())
+        token = query_params["token"][0]
+        scope["token"] = token
+        scope["user"] = await get_user(scope)
+        return await self.app(scope, receive, send)   
 
         
 
