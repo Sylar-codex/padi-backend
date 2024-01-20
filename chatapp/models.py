@@ -15,3 +15,11 @@ class ChatMessages(models.Model):
 
     def get_last_10_messages(self):
         return ChatMessages.objects.order_by("-timestamp").all()[:10]
+    
+
+class Conversation(models.Model) :
+    name = models.CharField(max_length=128)
+    online = models.ManyToManyField(to=User, blank=True)
+
+
+
