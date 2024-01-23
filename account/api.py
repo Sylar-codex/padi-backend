@@ -4,6 +4,7 @@ from knox.models import AuthToken
 from django.contrib.auth.models import User
 from knox.auth import TokenAuthentication
 from .serializers import UserSerializer, RegisterSerializer, LoginSerializer
+from rest_framework.decorators import action
 
 # register api
 class RegisterAPI(generics.GenericAPIView) :
@@ -44,3 +45,13 @@ class UserAPI(generics.RetrieveAPIView) :
 
     def get_object(self):
         return self.request.user
+
+    # get all users
+
+    @action(detail=False)
+    def all(self,request) :
+        users = User.objects.all()
+        serializer = self.get_serializer(users, many=True, context={"request":request})
+
+        return Response({"users":serializer.data})
+
