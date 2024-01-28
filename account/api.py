@@ -46,12 +46,21 @@ class UserAPI(generics.RetrieveAPIView) :
     def get_object(self):
         return self.request.user
 
-    # get all users
 
-    @action(detail=False)
-    def all(self,request) :
+    
+
+class AllUsersAPI(generics.RetrieveAPIView) :
+    serializer_class = UserSerializer
+
+    authentication_classes = (TokenAuthentication,)
+
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]
+    def get(self, request) :
         users = User.objects.all()
         serializer = self.get_serializer(users, many=True, context={"request":request})
 
-        return Response({"users":serializer.data})
+        return Response(serializer.data)
+    
 
