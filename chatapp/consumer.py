@@ -1,7 +1,18 @@
 import json
+from uuid import UUID
 from channels.generic.websocket import JsonWebsocketConsumer
 from asgiref.sync import async_to_sync
-from .models import ChatMessages, Conversation
+from .models import ChatMessages, Conversation,Message
+from django.contrib.auth.models import User
+from .serializers import MessageSerializer   
+
+
+class UUIDEncoder(json.JSONEncoder) :
+    def default(self, obj) :
+        if isinstance(obj, UUID) :
+            # returns the value of uuid if it is a uuid object
+            return obj.hex
+        return json.JSONDecodeError.default(self, obj)
 
 
 class ChatConsumer(JsonWebsocketConsumer):
@@ -16,47 +27,18 @@ class ChatConsumer(JsonWebsocketConsumer):
         self.conversation_name = None
         self.conversation = None
 
-    def fetch_messages(self, data):
-        messages = ChatMessages.get_last_10_messages()
-        content = {
-            "messages": self.messages_to_json(messages)
-        }
-        self.send_message(content)
+    @classmethod
+    def encode_json(cls, content):
+        return json.dumps(content, cls=UUIDEncoder)
 
-    def new_message(self, data):
-        user = data['from']
-        message = ChatMessages.objects.create(
-            user=user, content=data['message'])
 
-        content = {
-            "command": "new_message",
-            "message": self.message_to_json(message)
-        }
-        return self.send_chat_message(content)
-
-    def messages_to_json(self, messages):
-        result = []
-        for message in messages:
-            result.append(self.message_to_json(message))
-        return result
-
-    def message_to_json(self, message):
-        return {
-            "author": message.user,
-            "content": message.content,
-            "timestamp": str(message.timestamp)
-        }
-
-    commands = {
-        'fetch_messages': fetch_messages,
-        'new_messages': new_message
-    }
 
     def connect(self):
         self.user = self.scope["user"]
 
         if not self.user.is_authenticated:
             return
+
         self.accept()
         self.conversation_name = f"{self.scope['url_route']['kwargs']['conversation_name']}"
         self.conversation, created = Conversation.objects.get_or_create(name=self.conversation_name)
@@ -81,15 +63,29 @@ class ChatConsumer(JsonWebsocketConsumer):
     def receive_json(self, content, **kwargs):
         message_type = content["type"]
         if message_type == "chat_message":
+            message = Message.objects.create(
+            from_user=self.user,
+            to_user=self.get_receiver(),
+            content=content["message"],
+            conversation=self.conversation
+    )
             async_to_sync(self.channel_layer.group_send)(
-            self.conversation_name,
+        self.conversation_name,
             {
                 "type": "chat_message_echo",
-                "username": content["username"],
-                "message": content["message"],
+                "name": self.user.username,
+                "message": MessageSerializer(message).data,
             },
-        )
+)
+        
         return super().receive_json(content, **kwargs)
+    
+    def get_receiver(self) :
+        usernames = self.conversation_name.split("__")
+        for username in usernames :
+            if username != self.user.username :
+                # reciever
+                return User.objects.get(username=username)
     
     def chat_message_echo(self, event):
         print("echo_func",event)

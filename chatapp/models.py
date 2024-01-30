@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from datetime import datetime
 from django.core.validators import MinLengthValidator
 from datetime import datetime
+import uuid
 
 
 class ChatMessages(models.Model):
@@ -19,6 +20,7 @@ class ChatMessages(models.Model):
     
 
 class Conversation(models.Model) :
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=128)
     online = models.ManyToManyField(User, blank=True)
 
@@ -35,6 +37,7 @@ class Conversation(models.Model) :
 
 
 class Message(models.Model) :
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name="messages")
     from_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="messages_from_me")
     to_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="messages_to_me")

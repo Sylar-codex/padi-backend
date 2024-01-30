@@ -18,7 +18,8 @@ class TokenAuthentication :
         model = self.get_model()
 
         try :
-            model.objects.select_related("user").get(token_key=token)
+            key = token[:8]
+            token = model.objects.select_related("user").get(token_key=key)
         except model.DoesNotExist:
             raise AuthenticationFailed(_("Invalid token."))
         
