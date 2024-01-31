@@ -55,6 +55,12 @@ class ChatConsumer(JsonWebsocketConsumer):
             }
         )
 
+        messages = self.conversation.messages.all().order_by("-timestamp")[0:10]
+        self.send_json({
+            "type": "last_50_messages",
+            "messages": MessageSerializer(messages, many=True).data,
+        })
+
     def disconnect(self, close_code):
         return
     
@@ -68,14 +74,15 @@ class ChatConsumer(JsonWebsocketConsumer):
             to_user=self.get_receiver(),
             content=content["message"],
             conversation=self.conversation
-    )
+            )
+
             async_to_sync(self.channel_layer.group_send)(
-        self.conversation_name,
-            {
-                "type": "chat_message_echo",
-                "name": self.user.username,
-                "message": MessageSerializer(message).data,
-            },
+            self.conversation_name,
+                {
+                    "type": "chat_message_echo",
+                    "name": self.user.username,
+                    "message": MessageSerializer(message).data,
+                },
 )
         
         return super().receive_json(content, **kwargs)
@@ -88,7 +95,7 @@ class ChatConsumer(JsonWebsocketConsumer):
                 return User.objects.get(username=username)
     
     def chat_message_echo(self, event):
-        print("echo_func",event)
+        print(event)
         self.send_json(event)
 
 # Receive message from WebSocket
