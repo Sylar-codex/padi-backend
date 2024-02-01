@@ -1,10 +1,12 @@
 # chat/urls.py
 from django.urls import path
+from rest_framework.routers import DefaultRouter
 
-from . import views
+from .api import ConversationViewSet
 
+router = DefaultRouter()
 
-urlpatterns = [
-    path("", views.index, name="index"),
-    path("<str:room_name>/", views.room, name="room"),
-]
+router.register("api/conversations", ConversationViewSet)
+
+urlpatterns = router.urls
+

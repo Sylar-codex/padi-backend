@@ -21,5 +21,6 @@ urlpatterns = [
     # path("chatapp/", include('chatapp.urls')),
     path('admin/', admin.site.urls),
     path('', include('account.urls')),
+    path('', include('chatapp.urls')),
     # path('ws/', include("chatapp.routing.websocket_urlpatterns"))
 ]
