@@ -7,6 +7,27 @@ from django.contrib.auth.models import User
 from .serializers import MessageSerializer   
 
 
+class StartConnection(JsonWebsocketConsumer) :
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.room_name = None
+    
+    def connect(self):
+        print("Connected!")
+        self.room_name = "home"
+        self.accept()
+        self.send_json(
+            {
+                "type": "welcome_message",
+                "message": "Hey there! You've successfully connected initially!",
+            }
+        )
+
+    def disconnect(self, code):
+        print("Disconnected!")
+        return super().disconnect(code)
+
+
 class UUIDEncoder(json.JSONEncoder) :
     def default(self, obj) :
         if isinstance(obj, UUID) :
