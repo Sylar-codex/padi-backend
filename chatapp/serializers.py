@@ -30,12 +30,12 @@ class ConversationSerializer(serializers.ModelSerializer) :
 
     class Meta :
         model = Conversation
-        ffields = ("id", "name", "other_user", "last_message")
+        fields = ("id", "name", "other_user", "last_message")
     
     def get_last_message(self, obj) :
         messages = obj.messages.all().order_by("-timestamp")
 
-        if not messages.exist() :
+        if not messages.exists() :
             return None
         message = messages[0]
         return MessageSerializer(message).data
@@ -46,7 +46,8 @@ class ConversationSerializer(serializers.ModelSerializer) :
         context = {}
 
         for username in usernames :
+            if username != self.context["user"].username :
 
-            # other participant
-            other_user = User.objects.get(username=username)
-            return UserSerializer(other_user, context=context).data 
+                # other participant
+                other_user = User.objects.get(username=username)
+                return UserSerializer(other_user, context=context).data 
