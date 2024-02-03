@@ -2,11 +2,12 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
-from .api import ConversationViewSet
+from .api import ConversationViewSet, MessageViewSet
 
 router = DefaultRouter()
 
 router.register("api/conversations", ConversationViewSet)
+router.register("api/conversations/messages", MessageViewSet)
 
 urlpatterns = router.urls
 
