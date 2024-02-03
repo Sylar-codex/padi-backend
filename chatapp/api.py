@@ -4,6 +4,7 @@ from rest_framework.viewsets import ModelViewSet
 from knox.auth import TokenAuthentication
 from rest_framework import permissions
 from .models import Message
+from .paginaters import MessagePagination
 
 
 class ConversationViewSet(ModelViewSet) :
@@ -33,7 +34,7 @@ class MessageViewSet(ModelViewSet) :
     ]
     serializer_class = MessageSerializer
     queryset = Message.objects.all()
-    print(queryset)
+    pagination_class = MessagePagination
 
     def get_queryset(self) :
         conversation_name = self.request
@@ -44,3 +45,5 @@ class MessageViewSet(ModelViewSet) :
             .filter(conversation__name=conversation_name)
             .order_by("-timestamp")
         )
+
+        return queryset

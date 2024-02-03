@@ -69,12 +69,22 @@ class ChatConsumer(JsonWebsocketConsumer):
         self.channel_name,
     )
     
-        self.send_json(
+        self.send_json( {
+            "type":"online_user_list",
+            "users": [user.username for user in self.conversation.online.all()],
+        }
+           
+        )
+
+        async_to_sync(self.channel_layer.group_send) (
+            self.conversation_name,
             {
-                "type": "welcome_message",
-                "message": "Hey there! You've successfully connected!",
+                "type" :"user_join",
+                "user":self.user.username
             }
         )
+
+        self.conversation.online.add(self.user)
 
         messages = self.conversation.messages.all().order_by("-timestamp")[0:50]
         message_count = self.conversation.messages.all().count()
@@ -85,7 +95,17 @@ class ChatConsumer(JsonWebsocketConsumer):
         })
 
     def disconnect(self, close_code):
-        return
+        if self.user.is_authenticated :
+            async_to_sync(self.channel_layer.group_send) (
+                self.conversation_name,
+                {
+                "type":"user_leave",
+                "user":self.user.username
+                }
+                
+            )
+            self.conversation.online.remove(self.user)
+        return super().disconnect(close_code)
     
        
         
@@ -118,5 +138,11 @@ class ChatConsumer(JsonWebsocketConsumer):
                 return User.objects.get(username=username)
     
     def chat_message_echo(self, event):
+        self.send_json(event)
+
+    def user_join(self, event) :
+        self.send_json(event)
+    
+    def user_leave(self,event) :
         self.send_json(event)
 
