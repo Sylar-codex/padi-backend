@@ -1,8 +1,8 @@
 from .serializers import ConversationSerializer, MessageSerializer
 from .models import Conversation
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from knox.auth import TokenAuthentication
-from rest_framework import permissions
+from rest_framework import permissions, generics, mixins
 from .models import Message
 from .paginaters import MessagePagination
 
@@ -26,18 +26,20 @@ class ConversationViewSet(ModelViewSet) :
         return {"request": self.request, "user": self.request.user}
     
 
-class MessageViewSet(ModelViewSet) :
+class MessageViewSet(GenericViewSet, mixins.ListModelMixin) :
     authentication_classes = (TokenAuthentication,)
 
     permission_classes = [
         permissions.IsAuthenticated,
     ]
     serializer_class = MessageSerializer
-    queryset = Message.objects.all()
+    queryset = Message.objects.none()
+    
     pagination_class = MessagePagination
 
     def get_queryset(self) :
-        conversation_name = self.request
+
+        conversation_name = self.request.GET.get("conversation")
         queryset = (
             Message.objects.filter(
                 conversation__name__contains=self.request.user.username,

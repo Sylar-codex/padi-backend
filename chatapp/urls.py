@@ -7,7 +7,7 @@ from .api import ConversationViewSet, MessageViewSet
 router = DefaultRouter()
 
 router.register("api/conversations", ConversationViewSet)
-router.register("api/conversations/messages", MessageViewSet)
+router.register("api/messages", MessageViewSet)
 
 urlpatterns = router.urls
 
