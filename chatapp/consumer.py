@@ -160,3 +160,24 @@ class ChatConsumer(JsonWebsocketConsumer):
     def typing(self, event):
         self.send_json(event)
 
+
+
+class NotificationConsumer(JsonWebsocketConsumer) :
+    def __init__(self, *args, **kwargs) :
+        super().__init__(args, kwargs)
+        self.user = None
+
+    def connect(self) :
+        self.user= self.scope["user"]
+        if not self.user.is_authenticated():
+            return
+        
+        self.accept()
+
+        unread_count = Message.objects.filter(to_user=self.user, read=False).count()
+        self.send_json(
+        {
+            "type": "unread_count",
+            "unread_count": unread_count,
+        }
+    )
