@@ -35,6 +35,9 @@ class Conversation(models.Model) :
         self.online.remove(user)
         self.save()
 
+    def __str__(self):
+        return f"{self.name} ({self.get_online_count()})"
+
 
 class Message(models.Model) :
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
