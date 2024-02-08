@@ -68,7 +68,8 @@ class ChatConsumer(JsonWebsocketConsumer):
         self.conversation_name,
         self.channel_name,
     )
-        print(self.conversation.online.all())
+        
+        
         self.send_json( {
             "type":"online_user_list",
             "users": [user.username for user in self.conversation.online.all()],
@@ -137,6 +138,21 @@ class ChatConsumer(JsonWebsocketConsumer):
                     "message":MessageSerializer(message).data
                 },
             )
+
+        if message_type == "read_messages" :
+            message_to_me = self.conversation.messages.filter(to_user=self.user)
+            message_to_me.update(read=True)
+
+            # update the unread message count
+            unread_count = Message.objects.filter(to_user=self.user, read=False).count()
+
+            async_to_sync(self.channel_layer.group_send) (
+                self.user.username + "__notifications",
+                {
+                    "type":"unread_count",
+                    "unread_count":unread_count,
+                },
+            )
             
         if message_type == "typing":
 
@@ -171,6 +187,9 @@ class ChatConsumer(JsonWebsocketConsumer):
         self.send_json(event)
 
     def new_message_notification(self, event):
+        self.send_json(event)
+    
+    def unread_count(self, event) :
         self.send_json(event)
 
 
@@ -211,4 +230,7 @@ class NotificationConsumer(JsonWebsocketConsumer) :
         return super().disconnect(close_code)
     
     def new_message_notification(self, event):
+        self.send_json(event)
+
+    def unread_count(self, event) :
         self.send_json(event)
