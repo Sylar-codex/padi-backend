@@ -2,7 +2,7 @@ import json
 from uuid import UUID
 from channels.generic.websocket import JsonWebsocketConsumer
 from asgiref.sync import async_to_sync
-from .models import ChatMessages, Conversation,Message
+from .models import Conversation,Message
 from django.contrib.auth.models import User
 from .serializers import MessageSerializer   
 
@@ -56,7 +56,7 @@ class ChatConsumer(JsonWebsocketConsumer):
 
     def connect(self):
         self.user = self.scope["user"]
-
+        print("chat consumer",self.user)
         if not self.user.is_authenticated:
             return
 
@@ -108,7 +108,7 @@ class ChatConsumer(JsonWebsocketConsumer):
             self.conversation.online.remove(self.user)
         return super().disconnect(close_code)
     
-       
+    
         
     def receive_json(self, content, **kwargs):
         message_type = content["type"]
@@ -133,7 +133,7 @@ class ChatConsumer(JsonWebsocketConsumer):
             async_to_sync(self.channel_layer.group_send) (
                 notification_group_name,
                 {
-                    "type":"new_message-notification",
+                    "type":"new_message_notification",
                     "name":self.user.username,
                     "message":MessageSerializer(message).data
                 },
@@ -201,8 +201,9 @@ class NotificationConsumer(JsonWebsocketConsumer) :
         self.notification_group_name = None
 
     def connect(self) :
-        self.user= self.scope["user"]
-        if not self.user.is_authenticated():
+        self.user = self.scope["user"]
+        print("noty",self.user)
+        if not self.user.is_authenticated:
             return
         
         self.accept()
@@ -233,4 +234,5 @@ class NotificationConsumer(JsonWebsocketConsumer) :
         self.send_json(event)
 
     def unread_count(self, event) :
+        print('UNREAD',event)
         self.send_json(event)
