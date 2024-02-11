@@ -42,6 +42,9 @@ INSTALLED_APPS = [
     "django_extensions",
     "chatapp",
     "rest_framework",
+    "cloudinary",
+    'cloudinary_storage',
+    "django"
     "knox",
     "account"
 ]
@@ -160,3 +163,10 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME' : os.environ.get("CLOUDINARY_CLOUD_NAME"), 
+    'API_KEY' :os.environ.get("CLOUDINARY_API_KEY"),
+    'API_SECRET':os.environ.get("CLOUDINARY_SECRET_KEY")
+}
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
