@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "cloudinary",
     'cloudinary_storage',
-    "django"
+    "django",
     "knox",
     "account"
 ]
