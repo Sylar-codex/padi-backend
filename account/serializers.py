@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from .models import UserProfile
 from cloudinary.uploader import upload_image
+import os
+
 # User serializer
 class UserSerializer(serializers.ModelSerializer) :
     class Meta:
@@ -48,7 +50,7 @@ class UserProfileSerializer(serializers.ModelSerializer) :
 
         if "image" in validated_data :
             if validated_data["image"] is not "None.png" :
-                validated_data["image"] = upload_image(validated_data["image"], use_filename=True, folder="profile_image/")
+                validated_data["image"] = upload_image(validated_data["image"], use_filename=True, folder="profile_image/", api_key=os.environ.get("CLOUDINARY_API_KEY"))
             else :
                 validated_data["image"] = None
             

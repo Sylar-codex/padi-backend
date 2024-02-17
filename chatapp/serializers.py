@@ -10,6 +10,8 @@ class MessageSerializer(serializers.ModelSerializer) :
     from_user= serializers.SerializerMethodField()
     to_user = serializers.SerializerMethodField()
     conversation = serializers.SerializerMethodField()
+    to_user_profile = serializers.SerializerMethodField()
+    from_user_profile = serializers.SerializerMethodField()
 
     class Meta :
         model = Message
@@ -24,6 +26,19 @@ class MessageSerializer(serializers.ModelSerializer) :
     
     def get_to_user(self,obj) :
         return UserSerializer(obj.to_user).data
+    
+    def get_to_user_profile(self, obj) :
+        context = {}
+        to_user = User.objects.get(username=obj.to_user)
+        other_user_profile = UserProfile.objects.get(user=to_user)
+        return UserProfileSerializer(other_user_profile, context=context).data
+    
+    def get_from_user_profile(self,obj) :
+        context = {}
+        from_user = User.objects.get(username=obj.from_user)
+        other_user_profile = UserProfile.objects.get(user=from_user)
+        return UserProfileSerializer(other_user_profile, context=context).data
+
     
 
 class ConversationSerializer(serializers.ModelSerializer) :
