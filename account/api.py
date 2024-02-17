@@ -79,10 +79,11 @@ class UpdateUserProfileAPI(generics.UpdateAPIView) :
     
     def patch(self, request,*args,**kwargs):
         instance = self.get_object()
-        serializer = self.get_serializer(instance,data=request.data, partial=True)
+        serializer = self.get_serializer(instance.id,data=request.data, context={"request":request}, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({"message":"user profile updated"})
+        profile = self.request.user.user_profile
+        return Response(UserProfileSerializer(profile).data)
 
 
 

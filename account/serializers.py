@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from .models import UserProfile
-
+from cloudinary.uploader import upload_image
 # User serializer
 class UserSerializer(serializers.ModelSerializer) :
     class Meta:
@@ -44,18 +44,17 @@ class UserProfileSerializer(serializers.ModelSerializer) :
         fields = "__all__"
 
     def update(self, instance, validated_data) :
-        profile = UserProfile.objects.update(**validated_data)
+        user = self.context["request"].user
+
+        if "image" in validated_data :
+            if validated_data["image"] is not "None.png" :
+                validated_data["image"] = upload_image(validated_data["image"], use_filename=True, folder="profile_image/")
+            else :
+                validated_data["image"] = None
+            
+        profile = UserProfile.objects.filter(user=user).update(**validated_data)
         return profile
 
 
-# class UpdateUserProfileSerializer(serializers.ModelSerializer) :
-#     def update(self, instance, validated_data) :
-#         instance.image = validated_data["image"]
-#         instance.description = validated_data["description"]
-#         instance.save()
-#         user = self.context["user"]
-#         profile = UserProfile.objects.update(user,**validated_data)
-#         profile.save()
-#         return profile
 
 

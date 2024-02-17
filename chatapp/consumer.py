@@ -234,5 +234,4 @@ class NotificationConsumer(JsonWebsocketConsumer) :
         self.send_json(event)
 
     def unread_count(self, event) :
-        print('UNREAD',event)
         self.send_json(event)
