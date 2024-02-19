@@ -4,7 +4,7 @@ from channels.generic.websocket import JsonWebsocketConsumer
 from asgiref.sync import async_to_sync
 from .models import Conversation,Message
 from django.contrib.auth.models import User
-from .serializers import MessageSerializer   
+from .serializers import MessageSerializer,ConversationSerializer  
 
 
 class StartConnection(JsonWebsocketConsumer) :
@@ -119,23 +119,28 @@ class ChatConsumer(JsonWebsocketConsumer):
             content=content["message"],
             conversation=self.conversation
             )
-
+            conversation = message.conversation
             async_to_sync(self.channel_layer.group_send)(
             self.conversation_name,
                 {
                     "type": "chat_message_echo",
                     "name": self.user.username,
                     "message": MessageSerializer(message).data,
+                    "conversation":ConversationSerializer(conversation, context={"user":self.user}).data
+
                 },
                         
             )
             notification_group_name = self.get_receiver().username + "__notifications"
+            
             async_to_sync(self.channel_layer.group_send) (
                 notification_group_name,
                 {
                     "type":"new_message_notification",
                     "name":self.user.username,
-                    "message":MessageSerializer(message).data
+                    "message":MessageSerializer(message).data,
+                    "conversation":ConversationSerializer(conversation, context={"user":self.get_receiver()}).data
+
                 },
             )
 
@@ -143,14 +148,18 @@ class ChatConsumer(JsonWebsocketConsumer):
             message_to_me = self.conversation.messages.filter(to_user=self.user)
             message_to_me.update(read=True)
 
+
             # update the unread message count
             unread_count = Message.objects.filter(to_user=self.user, read=False).count()
+
+            conversations = Conversation.objects.filter(name__contains=self.user.username)
 
             async_to_sync(self.channel_layer.group_send) (
                 self.user.username + "__notifications",
                 {
                     "type":"unread_count",
                     "unread_count":unread_count,
+                    "conversations":ConversationSerializer(conversations, context={"user":self.user}, many=True).data
                 },
             )
             
@@ -202,7 +211,6 @@ class NotificationConsumer(JsonWebsocketConsumer) :
 
     def connect(self) :
         self.user = self.scope["user"]
-        print("noty",self.user)
         if not self.user.is_authenticated:
             return
         
@@ -215,10 +223,13 @@ class NotificationConsumer(JsonWebsocketConsumer) :
         )
 
         unread_count = Message.objects.filter(to_user=self.user, read=False).count()
+        conversations = Conversation.objects.filter(name__contains=self.user.username)
+
         self.send_json(
             {
                 "type": "unread_count",
                 "unread_count": unread_count,
+                "conversations":ConversationSerializer(conversations, context={"user":self.user}, many=True).data
             }
         )
 
