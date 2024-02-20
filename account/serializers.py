@@ -41,18 +41,19 @@ class LoginSerializer(serializers.Serializer) :
 # update UserProfile serializer
 
 class UserProfileSerializer(serializers.ModelSerializer) :
+    remove_image = serializers.BooleanField(default=False)
     class Meta :
         model = UserProfile
         fields = "__all__"
-
     def update(self, instance, validated_data) :
         user = self.context["request"].user
+        if "remove_image" in validated_data :
+            if validated_data["remove_image"] :
+                return UserProfile.objects.filter(user=user).update(image=None)
 
         if "image" in validated_data :
-            if validated_data["image"] is not "None.png" :
-                validated_data["image"] = upload_image(validated_data["image"], use_filename=True, folder="profile_image/", api_key=os.environ.get("CLOUDINARY_API_KEY"))
-            else :
-                validated_data["image"] = None
+            validated_data["image"] = upload_image(validated_data["image"], use_filename=True, folder="profile_image/", api_key=os.environ.get("CLOUDINARY_API_KEY"))
+
             
         profile = UserProfile.objects.filter(user=user).update(**validated_data)
         return profile
