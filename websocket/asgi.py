@@ -7,11 +7,13 @@ For more information on this file, see
 https://docs.djangoproject.com/en/4.2/howto/deployment/asgi/
 """
 
-import os
+import os,django
+from django.conf.urls import url
 
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'websocket.settings')
+django.setup()
 
 from channels.routing import ProtocolTypeRouter, URLRouter
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'websocket.settings')
 
 from chatapp.routing import websocket_urlpatterns
 from django.core.asgi import get_asgi_application
