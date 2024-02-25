@@ -8,7 +8,6 @@ https://docs.djangoproject.com/en/4.2/howto/deployment/asgi/
 """
 
 import os,django
-from django.conf.urls import url
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'websocket.settings')
 django.setup()
