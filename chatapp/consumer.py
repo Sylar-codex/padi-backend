@@ -13,7 +13,6 @@ class StartConnection(JsonWebsocketConsumer) :
         self.room_name = None
     
     def connect(self):
-        print("Connected!")
         self.room_name = "home"
         self.accept()
         self.send_json(
@@ -24,7 +23,6 @@ class StartConnection(JsonWebsocketConsumer) :
         )
 
     def disconnect(self, code):
-        print("Disconnected!")
         return super().disconnect(code)
 
 

@@ -8,12 +8,13 @@ https://docs.djangoproject.com/en/4.2/howto/deployment/asgi/
 """
 
 import os
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'websocket.settings')
 
 from channels.routing import ProtocolTypeRouter, URLRouter
-from channels.security.websocket import AllowedHostsOriginValidator
 from chatapp.routing import websocket_urlpatterns
 from django.core.asgi import get_asgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'websocket.settings')
+
 from chatapp.middleware import TokenAuthMiddleware
 
 
