@@ -12,7 +12,7 @@ cloudinary==1.38.0
 constantly==15.1.0
 cryptography==41.0.1
 daphne==4.0.0
-Django==3.2.19
+Django==4.2.1
 django-cloudinary-storage==0.3.0
 django-cors-headers==4.3.1
 django-extensions==3.2.3
@@ -41,5 +41,5 @@ txaio==23.1.1
 typing_extensions==4.6.2
 urllib3==2.2.0
 websockets==11.0.3
-whitenoise==6.2.0
+whitenoise==6.6.0
 zope.interface==6.0
