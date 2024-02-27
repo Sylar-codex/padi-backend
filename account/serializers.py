@@ -55,7 +55,7 @@ class UserProfileSerializer(serializers.ModelSerializer) :
                 return UserProfile.objects.filter(user=user).update(image=None)
 
         if "image" in validated_data :
-            validated_data["image"] = upload_image(validated_data["image"], use_filename=True, folder="profile_image/", api_key=os.environ.get("CLOUDINARY_API_KEY"))
+            validated_data["image"] = upload_image(validated_data["image"], use_filename=True, folder="profile_image/", api_key=os.environ.get("CLOUDINARY_API_KEY"), api_secret=os.environ.get("CLOUDINARY_SECRET_KEY"))
 
             
         profile = UserProfile.objects.filter(user=user).update(**validated_data)
