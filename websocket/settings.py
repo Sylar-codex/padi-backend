@@ -113,7 +113,7 @@ CHANNEL_LAYERS = {
 
 # cors header 
 
-CORS_ALLOWED_ORIGINS = ["http://localhost:3000","*"] 
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000",os.environ.get("FRONTEND_HOST")] 
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
